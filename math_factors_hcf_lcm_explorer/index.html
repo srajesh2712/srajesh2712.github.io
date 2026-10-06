@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Explorer: Factors, HCF & LCM</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for crisp icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            purple: '#6C5CE7',
+                            pink: '#FD79A8',
+                            yellow: '#FDCB6E',
+                            green: '#00B894',
+                            blue: '#0984E3',
+                            orange: '#E17055'
+                        }
+                    },
+                    animation: {
+                        'bounce-short': 'bounceShort 0.6s ease-in-out infinite alternate',
+                        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'star-pop': 'starPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        'float': 'float 3s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        bounceShort: {
+                            '0%': { transform: 'translateY(0)' },
+                            '100%': { transform: 'translateY(-10px)' }
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 1, filter: 'drop-shadow(0 0 15px rgba(253, 203, 110, 0.8))' },
+                            '50%': { opacity: 0.8, filter: 'drop-shadow(0 0 5px rgba(253, 203, 110, 0.3))' }
+                        },
+                        starPop: {
+                            '0%': { transform: 'scale(0) rotate(-45deg)', opacity: 0 },
+                            '100%': { transform: 'scale(1) rotate(0deg)', opacity: 1 }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #F0F3FF 0%, #E8EEFF 50%, #F5EFFF 100%);
+            min-height: 100vh;
+        }
+        .tab-btn {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tab-btn.active {
+            background-color: #6C5CE7;
+            color: white;
+            box-shadow: 0 10px 25px -5px rgba(108, 92, 231, 0.4);
+            transform: translateY(-2deg);
+        }
+        .card-glass {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        .number-line-scroll::-webkit-scrollbar {
+            height: 10px;
+        }
+        .number-line-scroll::-webkit-scrollbar-track {
+            background: #E2E8F0;
+            border-radius: 5px;
+        }
+        .number-line-scroll::-webkit-scrollbar-thumb {
+            background: #A0AEC0;
+            border-radius: 5px;
+        }
+        .venn-circle {
+            transition: all 0.4s ease;
+        }
+        .grid-block {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .grid-block:hover {
+            transform: scale(1.15);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-purple-200 selection:text-purple-900 pb-12">
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 card-glass p-5 rounded-3xl shadow-sm border border-white">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-purple to-brand-pink flex items-center justify-center text-white text-2xl shadow-lg shadow-purple-200 animate-float">
+                    <i class="fa-solid fa-shapes"></i>
+                </div>
+                <div>
+                    <h1 class="font-fredoka text-2xl sm:text-3xl text-slate-900 font-bold tracking-wide flex items-center gap-2">
+                        Math Explorer <span class="text-xs font-semibold px-2.5 py-1 bg-purple-100 text-brand-purple rounded-full uppercase tracking-wider">NCERT Class 6</span>
+                    </h1>
+                    <p class="text-slate-500 text-sm font-medium">Master Factors, Prime Numbers, HCF & LCM visually!</p>
+                </div>
+            </div>
+
+            <!-- Audio & Info Controls -->
+            <div class="flex items-center gap-3">
+                <button id="sound-toggle-btn" onclick="toggleSound()" class="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm flex items-center gap-2 transition-all">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-brand-purple"></i>
+                    <span id="sound-text">Sound: ON</span>
+                </button>
+                <div class="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
+                <div class="flex items-center gap-2 bg-amber-50 border border-amber-200/80 px-3.5 py-2 rounded-2xl text-xs font-semibold text-amber-800">
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-sm"></i>
+                    <span>Visual Learning Mode</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            <button onclick="switchTab('factors')" id="tab-factors" class="tab-btn active p-4 rounded-2xl bg-white text-slate-600 font-bold font-fredoka text-base flex items-center justify-center gap-3 shadow-sm border border-slate-100">
+                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                <span>1. Factors</span>
+            </button>
+            <button onclick="switchTab('hcf')" id="tab-hcf" class="tab-btn p-4 rounded-2xl bg-white text-slate-600 font-bold font-fredoka text-base flex items-center justify-center gap-3 shadow-sm border border-slate-100">
+                <i class="fa-solid fa-bullseye text-lg"></i>
+                <span>2. HCF Explorer</span>
+            </button>
+            <button onclick="switchTab('lcm')" id="tab-lcm" class="tab-btn p-4 rounded-2xl bg-white text-slate-600 font-bold font-fredoka text-base flex items-center justify-center gap-3 shadow-sm border border-slate-100">
+                <i class="fa-solid fa-frog text-lg"></i>
+                <span>3. LCM Jumper</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn p-4 rounded-2xl bg-white text-slate-600 font-bold font-fredoka text-base flex items-center justify-center gap-3 shadow-sm border border-slate-100">
+                <i class="fa-solid fa-gamepad text-lg"></i>
+                <span>4. Math Quiz</span>
+            </button>
+        </nav>
+
+        <!-- ================= SECTION 1: FACTORS VISUALIZER ================= -->
+        <section id="section-factors" class="tab-content block">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Controls Card -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="card-glass p-6 rounded-3xl shadow-sm border border-white space-y-5">
+                        <div class="flex items-center justify-between">
+                            <h2 class="font-fredoka text-xl text-slate-800 font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-brand-purple"></i> Choose a Number
+                            </h2>
+                            <span class="text-xs bg-purple-100 text-brand-purple font-bold px-2.5 py-1 rounded-full">Range 1 - 100</span>
+                        </div>
+
+                        <!-- Main Input -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Input Value</label>
+                            <div class="flex items-center gap-3">
+                                <input type="number" id="factors-input" min="1" max="100" value="12" oninput="updateFactorsView()" class="w-full text-2xl font-bold font-fredoka px-4 py-3 rounded-2xl bg-slate-50 border-2 border-slate-200 focus:border-brand-purple focus:outline-none transition-all text-center text-brand-purple">
+                            </div>
+                            <input type="range" id="factors-slider" min="1" max="100" value="12" oninput="syncFactorsInput(this.value)" class="w-full accent-brand-purple cursor-pointer mt-2">
+                        </div>
+
+                        <!-- Quick Select Buttons -->
+                        <div>
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">Quick Presets</label>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button onclick="setFactorPreset(6)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-brand-purple text-slate-700 font-bold text-sm transition-all">6</button>
+                                <button onclick="setFactorPreset(12)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-brand-purple text-slate-700 font-bold text-sm transition-all">12</button>
+                                <button onclick="setFactorPreset(16)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-brand-purple text-slate-700 font-bold text-sm transition-all">16</button>
+                                <button onclick="setFactorPreset(24)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-brand-purple text-slate-700 font-bold text-sm transition-all">24</button>
+                                <button onclick="setFactorPreset(36)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-brand-purple text-slate-700 font-bold text-sm transition-all">36</button>
+                                <button onclick="setFactorPreset(48)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-brand-purple text-slate-700 font-bold text-sm transition-all">48</button>
+                                <button onclick="setFactorPreset(60)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-brand-purple text-slate-700 font-bold text-sm transition-all">60</button>
+                                <button onclick="setFactorPreset(100)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-brand-purple text-slate-700 font-bold text-sm transition-all">100</button>
+                            </div>
+                        </div>
+
+                        <!-- Number Classification Card -->
+                        <div id="factor-type-badge" class="p-4 rounded-2xl bg-purple-50 border border-purple-200 flex items-center gap-3">
+                            <div class="text-2xl" id="factor-type-icon">🔍</div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm" id="factor-type-title">Composite Number</h4>
+                                <p class="text-xs text-slate-600" id="factor-type-desc">Has more than 2 factors.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- What is a Factor? Box -->
+                    <div class="p-6 rounded-3xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-md space-y-3">
+                        <div class="flex items-center gap-2 font-fredoka text-lg font-bold">
+                            <i class="fa-solid fa-graduation-cap text-amber-300"></i> What is a Factor?
+                        </div>
+                        <p class="text-sm text-purple-100 leading-relaxed">
+                            A <strong class="text-amber-300">Factor</strong> is a whole number that divides another number completely without leaving any remainder!
+                        </p>
+                        <div class="bg-white/10 p-3 rounded-xl text-xs text-purple-100 font-mono">
+                            Example: 3 × 4 = 12<br>So, 3 & 4 are factors of 12.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualization Panel -->
+                <div class="lg:col-span-8 space-y-6">
+                    <!-- Factor List Card -->
+                    <div class="card-glass p-6 rounded-3xl shadow-sm border border-white space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-fredoka text-lg text-slate-800 font-bold">
+                                All Factors of <span id="factors-target-num" class="text-brand-purple font-black">12</span>
+                            </h3>
+                            <span id="factors-count-badge" class="text-xs font-bold px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full">6 Factors Found</span>
+                        </div>
+                        <div id="factors-badges-container" class="flex flex-wrap gap-3">
+                            <!-- Dynamic factor badges -->
+                        </div>
+                    </div>
+
+                    <!-- Factor Pairs & Visual Grids -->
+                    <div class="card-glass p-6 rounded-3xl shadow-sm border border-white space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-fredoka text-lg text-slate-800 font-bold">Visual Rectangle Grids (Factor Pairs)</h3>
+                                <p class="text-xs text-slate-500">Each rectangle represents equal rows & columns that multiply to your number!</p>
+                            </div>
+                        </div>
+
+                        <!-- Factor Pairs Tabs -->
+                        <div id="pair-selector-tabs" class="flex flex-wrap gap-2">
+                            <!-- Populated dynamically -->
+                        </div>
+
+                        <!-- Active Grid Box -->
+                        <div id="grid-visualizer-box" class="bg-slate-50 border-2 border-dashed border-slate-200 p-8 rounded-3xl flex flex-col items-center justify-center min-h-[260px] relative overflow-hidden">
+                            <div id="grid-dimensions-text" class="text-sm font-bold text-slate-600 mb-4 bg-white px-4 py-1.5 rounded-full shadow-sm border border-slate-200">
+                                3 rows × 4 columns = 12 total blocks
+                            </div>
+                            <div id="grid-blocks-render" class="flex flex-col gap-2 max-w-full overflow-x-auto p-2">
+                                <!-- Dynamic block grid -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION 2: HCF EXPLORER ================= -->
+        <section id="section-hcf" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Inputs -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="card-glass p-6 rounded-3xl shadow-sm border border-white space-y-5">
+                        <h2 class="font-fredoka text-xl text-slate-800 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-bullseye text-brand-purple"></i> Compare Two Numbers
+                        </h2>
+
+                        <!-- Number A -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+                                <span>Number A</span>
+                                <span class="text-brand-blue font-bold text-xs" id="hcf-label-a">12</span>
+                            </label>
+                            <input type="number" id="hcf-input-a" min="1" max="100" value="12" oninput="updateHCFView()" class="w-full text-xl font-bold font-fredoka px-4 py-3 rounded-2xl bg-blue-50/60 border-2 border-blue-200 focus:border-brand-blue focus:outline-none text-brand-blue">
+                        </div>
+
+                        <!-- Number B -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+                                <span>Number B</span>
+                                <span class="text-brand-pink font-bold text-xs" id="hcf-label-b">18</span>
+                            </label>
+                            <input type="number" id="hcf-input-b" min="1" max="100" value="18" oninput="updateHCFView()" class="w-full text-xl font-bold font-fredoka px-4 py-3 rounded-2xl bg-pink-50/60 border-2 border-pink-200 focus:border-brand-pink focus:outline-none text-brand-pink">
+                        </div>
+
+                        <!-- Presets -->
+                        <div>
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">Try Fun Examples</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="setHCFPreset(12, 18)" class="p-2.5 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 font-bold text-xs transition-all">12 & 18</button>
+                                <button onclick="setHCFPreset(24, 36)" class="p-2.5 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 font-bold text-xs transition-all">24 & 36</button>
+                                <button onclick="setHCFPreset(15, 25)" class="p-2.5 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 font-bold text-xs transition-all">15 & 25</button>
+                                <button onclick="setHCFPreset(8, 20)" class="p-2.5 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 font-bold text-xs transition-all">8 & 20</button>
+                            </div>
+                        </div>
+
+                        <!-- Result Card -->
+                        <div class="p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-center space-y-2 shadow-sm animate-pulse-glow">
+                            <div class="text-xs font-bold text-amber-800 uppercase tracking-wider">Highest Common Factor (HCF)</div>
+                            <div class="text-4xl font-black font-fredoka text-amber-600 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-star text-amber-400 text-2xl animate-spin" style="animation-duration: 8s;"></i>
+                                <span id="hcf-final-result">6</span>
+                                <i class="fa-solid fa-star text-amber-400 text-2xl animate-spin" style="animation-duration: 8s;"></i>
+                            </div>
+                            <p class="text-xs text-amber-700 font-medium">The LARGEST number that divides both evenly!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Venn Diagram Display -->
+                <div class="lg:col-span-8 space-y-6">
+                    <div class="card-glass p-6 rounded-3xl shadow-sm border border-white space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-fredoka text-lg text-slate-800 font-bold">Interactive Venn Diagram Breakdown</h3>
+                            <span class="text-xs font-bold px-3 py-1 bg-purple-100 text-brand-purple rounded-full">Common Overlap</span>
+                        </div>
+
+                        <!-- Venn Diagram Container -->
+                        <div class="relative bg-gradient-to-b from-slate-50 to-purple-50/30 p-6 rounded-3xl border border-slate-200 min-h-[380px] flex items-center justify-center overflow-hidden">
+                            <div class="w-full max-w-2xl grid grid-cols-1 md:grid-cols-3 gap-4 items-center relative z-10">
+                                <!-- Circle A Only -->
+                                <div class="bg-blue-500/10 border-2 border-blue-400/80 rounded-3xl p-5 min-h-[220px] flex flex-col justify-between shadow-sm backdrop-blur-sm">
+                                    <div class="text-center pb-2 border-b border-blue-200">
+                                        <span class="font-fredoka font-bold text-blue-700 text-base">Factors of <span id="venn-name-a">12</span> ONLY</span>
+                                    </div>
+                                    <div id="venn-a-unique" class="flex flex-wrap gap-2 justify-center py-4">
+                                        <!-- Unique Factors A -->
+                                    </div>
+                                    <div class="text-[11px] text-blue-600 text-center font-medium">Unique to A</div>
+                                </div>
+
+                                <!-- Center Intersection (Common) -->
+                                <div class="bg-amber-400/20 border-2 border-amber-400 rounded-3xl p-5 min-h-[240px] flex flex-col justify-between shadow-md backdrop-blur-md relative transform md:-translate-y-2">
+                                    <div class="text-center pb-2 border-b border-amber-300">
+                                        <span class="font-fredoka font-bold text-amber-800 text-base">COMMON Factors</span>
+                                    </div>
+                                    <div id="venn-common" class="flex flex-wrap gap-2 justify-center py-4">
+                                        <!-- Common Factors -->
+                                    </div>
+                                    <div class="text-center pt-2 border-t border-amber-200/80">
+                                        <span class="text-xs font-bold text-amber-900">HCF = <span id="hcf-badge-text">6</span></span>
+                                    </div>
+                                </div>
+
+                                <!-- Circle B Only -->
+                                <div class="bg-pink-500/10 border-2 border-pink-400/80 rounded-3xl p-5 min-h-[220px] flex flex-col justify-between shadow-sm backdrop-blur-sm">
+                                    <div class="text-center pb-2 border-b border-pink-200">
+                                        <span class="font-fredoka font-bold text-pink-700 text-base">Factors of <span id="venn-name-b">18</span> ONLY</span>
+                                    </div>
+                                    <div id="venn-b-unique" class="flex flex-wrap gap-2 justify-center py-4">
+                                        <!-- Unique Factors B -->
+                                    </div>
+                                    <div class="text-[11px] text-pink-600 text-center font-medium">Unique to B</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step By Step Summary -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+                                <span class="font-bold text-slate-700 block text-sm">Factors Breakdown:</span>
+                                <div>• Factors of <span id="summary-a-num">12</span>: <span id="summary-a-list" class="font-semibold text-blue-600">1, 2, 3, 4, 6, 12</span></div>
+                                <div>• Factors of <span id="summary-b-num">18</span>: <span id="summary-b-list" class="font-semibold text-pink-600">1, 2, 3, 6, 9, 18</span></div>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs space-y-1.5">
+                                <span class="font-bold text-amber-900 block text-sm">Common Analysis:</span>
+                                <div>• Shared Factors: <span id="summary-common-list" class="font-bold text-amber-700">1, 2, 3, 6</span></div>
+                                <div>• Highest among shared factors is <strong class="text-amber-800 text-sm font-black underline" id="summary-hcf-val">6</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION 3: LCM JUMPER ================= -->
+        <section id="section-lcm" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Sidebar Controls -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="card-glass p-6 rounded-3xl shadow-sm border border-white space-y-5">
+                        <h2 class="font-fredoka text-xl text-slate-800 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-frog text-emerald-500"></i> Set Jump Steps
+                        </h2>
+
+                        <!-- Jump A -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 flex justify-between">
+                                <span>Red Frog Jump (A)</span>
+                                <span class="text-rose-500 font-bold" id="lcm-val-a-display">4</span>
+                            </label>
+                            <input type="number" id="lcm-input-a" min="1" max="15" value="4" oninput="resetLCMAnimation()" class="w-full text-xl font-bold font-fredoka px-4 py-3 rounded-2xl bg-rose-50 border-2 border-rose-200 focus:border-rose-400 focus:outline-none text-rose-600">
+                        </div>
+
+                        <!-- Jump B -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 flex justify-between">
+                                <span>Blue Frog Jump (B)</span>
+                                <span class="text-sky-500 font-bold" id="lcm-val-b-display">6</span>
+                            </label>
+                            <input type="number" id="lcm-input-b" min="1" max="15" value="6" oninput="resetLCMAnimation()" class="w-full text-xl font-bold font-fredoka px-4 py-3 rounded-2xl bg-sky-50 border-2 border-sky-200 focus:border-sky-400 focus:outline-none text-sky-600">
+                        </div>
+
+                        <!-- Controls Buttons -->
+                        <div class="space-y-2 pt-2">
+                            <div class="grid grid-cols-2 gap-2">
+                                <button id="lcm-play-btn" onclick="toggleLCMPlay()" class="py-3 px-4 rounded-2xl bg-brand-purple hover:bg-purple-700 text-white font-bold font-fredoka text-sm shadow-md flex items-center justify-center gap-2 transition-all">
+                                    <i id="lcm-play-icon" class="fa-solid fa-play"></i>
+                                    <span id="lcm-play-text">Start Jump</span>
+                                </button>
+                                <button onclick="resetLCMAnimation()" class="py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold font-fredoka text-sm flex items-center justify-center gap-2 transition-all">
+                                    <i class="fa-solid fa-rotate-right"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Animation Speed Slider -->
+                        <div class="space-y-1.5 pt-2">
+                            <div class="flex justify-between text-xs font-bold text-slate-500">
+                                <span>Animation Speed</span>
+                                <span id="speed-label" class="text-brand-purple">Normal (1x)</span>
+                            </div>
+                            <input type="range" id="lcm-speed-slider" min="300" max="1200" step="100" value="700" oninput="updateLCMSpeed()" class="w-full accent-brand-purple cursor-pointer">
+                        </div>
+
+                        <!-- Result Card -->
+                        <div class="p-5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-center space-y-2 shadow-sm">
+                            <div class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Lowest Common Multiple (LCM)</div>
+                            <div class="text-4xl font-black font-fredoka text-emerald-600 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-flag-checkered text-emerald-500 text-2xl"></i>
+                                <span id="lcm-result-val">12</span>
+                            </div>
+                            <p class="text-xs text-emerald-700 font-medium">The FIRST common step where both frogs land together!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Number Line Canvas Container -->
+                <div class="lg:col-span-8 space-y-6">
+                    <div class="card-glass p-6 rounded-3xl shadow-sm border border-white space-y-6">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                            <h3 class="font-fredoka text-lg text-slate-800 font-bold">Multiples Number Line</h3>
+                            <div class="flex items-center gap-4 text-xs font-bold">
+                                <span class="flex items-center gap-1.5 text-rose-600">
+                                    <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> Red Frog (A)
+                                </span>
+                                <span class="flex items-center gap-1.5 text-sky-600">
+                                    <span class="w-3 h-3 rounded-full bg-sky-500 inline-block"></span> Blue Frog (B)
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Visual Number Line Viewport -->
+                        <div class="bg-gradient-to-b from-slate-900 to-slate-800 p-6 rounded-3xl shadow-inner border border-slate-700 relative overflow-hidden">
+                            <div id="lcm-number-line-scroll" class="number-line-scroll overflow-x-auto pb-6 pt-12 min-h-[280px]">
+                                <div id="lcm-svg-container" class="relative min-w-[900px] h-[180px]">
+                                    <!-- Dynamic SVG Arc Jumps & Ticks will render here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Multiples Log -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200">
+                                <div class="text-xs font-bold text-rose-700 uppercase tracking-wider mb-2">Multiples of Frog A (<span id="log-num-a">4</span>)</div>
+                                <div id="multiples-list-a" class="flex flex-wrap gap-1.5 text-xs font-mono font-bold text-rose-800">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-sky-50 border border-sky-200">
+                                <div class="text-xs font-bold text-sky-700 uppercase tracking-wider mb-2">Multiples of Frog B (<span id="log-num-b">6</span>)</div>
+                                <div id="multiples-list-b" class="flex flex-wrap gap-1.5 text-xs font-mono font-bold text-sky-800">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION 4: PRACTICE & QUIZ ================= -->
+        <section id="section-quiz" class="tab-content hidden">
+            <div class="max-w-3xl mx-auto space-y-6">
+                <!-- Score Bar -->
+                <div class="card-glass p-5 rounded-3xl shadow-sm border border-white flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl font-black">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Current Score</div>
+                            <div class="font-fredoka text-2xl font-bold text-slate-800" id="quiz-score-val">0 Points</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 bg-purple-50 border border-purple-200 px-4 py-2 rounded-2xl">
+                        <i class="fa-solid fa-fire text-brand-purple text-lg"></i>
+                        <span class="text-xs font-bold text-purple-900">Streak: <span id="quiz-streak-val" class="text-sm font-black text-brand-purple">0</span></span>
+                    </div>
+
+                    <button onclick="resetQuiz()" class="text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-all">
+                        <i class="fa-solid fa-rotate-right"></i> Restart Quiz
+                    </button>
+                </div>
+
+                <!-- Quiz Card Container -->
+                <div class="card-glass p-8 rounded-3xl shadow-md border border-white space-y-6 relative overflow-hidden">
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div id="quiz-progress-bar" class="bg-gradient-to-r from-brand-purple to-brand-pink h-full w-[20%] transition-all duration-300"></div>
+                    </div>
+
+                    <!-- Question Header -->
+                    <div class="space-y-2">
+                        <span id="quiz-tag" class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 bg-purple-100 text-brand-purple rounded-full">Question 1 of 5</span>
+                        <h3 id="quiz-question-text" class="font-fredoka text-xl sm:text-2xl text-slate-800 font-bold leading-snug">
+                            Which of the following numbers is a FACTOR of 24?
+                        </h3>
+                    </div>
+
+                    <!-- Answer Options -->
+                    <div id="quiz-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <!-- Options buttons injected here -->
+                    </div>
+
+                    <!-- Feedback & Hint Box -->
+                    <div id="quiz-feedback-box" class="hidden p-4 rounded-2xl text-sm font-medium transition-all">
+                        <!-- Feedback content -->
+                    </div>
+
+                    <!-- Action Controls -->
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                        <button id="quiz-hint-btn" onclick="showQuizHint()" class="text-xs font-bold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-4 py-2.5 rounded-2xl border border-amber-200 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-lightbulb"></i> Need a Hint?
+                        </button>
+                        <button id="quiz-next-btn" onclick="nextQuestion()" class="hidden px-6 py-3 rounded-2xl bg-brand-purple hover:bg-purple-700 text-white font-bold font-fredoka text-sm shadow-md transition-all flex items-center gap-2">
+                            <span>Next Question</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // Global Application State
+        const state = {
+            activeTab: 'factors',
+            soundEnabled: true,
+            factors: {
+                currentNum: 12,
+                activePairIndex: 0
+            },
+            hcf: {
+                numA: 12,
+                numB: 18
+            },
+            lcm: {
+                numA: 4,
+                numB: 6,
+                isPlaying: false,
+                speed: 700,
+                stepA: 0,
+                stepB: 0,
+                intervalId: null
+            },
+            quiz: {
+                currentIndex: 0,
+                score: 0,
+                streak: 0,
+                answered: false
+            }
+        };
+
+        // Web Audio API Synthesizer for sound effects
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playSound(type) {
+            if (!state.soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'jump') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(450, now + 0.15);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'win') {
+                    const freqs = [300, 400, 500, 600];
+                    freqs.forEach((f, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(f, now + i * 0.08);
+                        g.gain.setValueAtTime(0.15, now + i * 0.08);
+                        g.gain.linearRampToValueAtTime(0.01, now + i * 0.08 + 0.2);
+                        o.start(now + i * 0.08);
+                        o.stop(now + i * 0.08 + 0.2);
+                    });
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.2);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch (e) {
+                console.log('Audio playback ignored:', e);
+            }
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            document.getElementById('sound-icon').className = state.soundEnabled ? 'fa-solid fa-volume-high text-brand-purple' : 'fa-solid fa-volume-xmark text-slate-400';
+            document.getElementById('sound-text').innerText = state.soundEnabled ? 'Sound: ON' : 'Sound: OFF';
+        }
+
+        function switchTab(tabKey) {
+            state.activeTab = tabKey;
+            playSound('pop');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(sec => sec.classList.add('hidden'));
+
+            document.getElementById(`tab-${tabKey}`).classList.add('active');
+            document.getElementById(`section-${tabKey}`).classList.remove('hidden');
+
+            if (tabKey === 'factors') updateFactorsView();
+            if (tabKey === 'hcf') updateHCFView();
+            if (tabKey === 'lcm') resetLCMAnimation();
+            if (tabKey === 'quiz') renderQuiz();
+        }
+
+        function getFactors(num) {
+            const factors = [];
+            for (let i = 1; i <= num; i++) {
+                if (num % i === 0) factors.push(i);
+            }
+            return factors;
+        }
+
+        function getFactorPairs(num) {
+            const pairs = [];
+            for (let i = 1; i <= Math.sqrt(num); i++) {
+                if (num % i === 0) {
+                    pairs.push([i, num / i]);
+                }
+            }
+            return pairs;
+        }
+
+        function isPrime(num) {
+            if (num <= 1) return false;
+            for (let i = 2; i <= Math.sqrt(num); i++) {
+                if (num % i === 0) return false;
+            }
+            return true;
+        }
+
+        function getHCF(a, b) {
+            while (b) {
+                let t = b;
+                b = a % b;
+                a = t;
+            }
+            return a;
+        }
+
+        function getLCM(a, b) {
+            if (a === 0 || b === 0) return 0;
+            return Math.abs((a * b) / getHCF(a, b));
+        }
+
+        function syncFactorsInput(val) {
+            document.getElementById('factors-input').value = val;
+            updateFactorsView();
+        }
+
+        function setFactorPreset(val) {
+            document.getElementById('factors-input').value = val;
+            document.getElementById('factors-slider').value = val;
+            updateFactorsView();
+            playSound('pop');
+        }
+
+        function updateFactorsView() {
+            let num = parseInt(document.getElementById('factors-input').value) || 12;
+            num = Math.max(1, Math.min(100, num));
+            state.factors.currentNum = num;
+
+            document.getElementById('factors-target-num').innerText = num;
+            document.getElementById('factors-slider').value = num;
+
+            const factors = getFactors(num);
+            const pairs = getFactorPairs(num);
+
+            // Classification badge
+            const badgeIcon = document.getElementById('factor-type-icon');
+            const badgeTitle = document.getElementById('factor-type-title');
+            const badgeDesc = document.getElementById('factor-type-desc');
+            const badgeContainer = document.getElementById('factor-type-badge');
+
+            if (num === 1) {
+                badgeIcon.innerText = '⭐';
+                badgeTitle.innerText = 'Unique Number 1';
+                badgeDesc.innerText = 'Neither prime nor composite.';
+                badgeContainer.className = 'p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center gap-3';
+            } else if (isPrime(num)) {
+                badgeIcon.innerText = '🛡️';
+                badgeTitle.innerText = 'Prime Number!';
+                badgeDesc.innerText = `Only 2 factors: 1 and ${num}.`;
+                badgeContainer.className = 'p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3';
+            } else {
+                badgeIcon.innerText = '🧩';
+                badgeTitle.innerText = 'Composite Number';
+                badgeDesc.innerText = `Has ${factors.length} total factors.`;
+                badgeContainer.className = 'p-4 rounded-2xl bg-purple-50 border border-purple-200 flex items-center gap-3';
+            }
+
+            // Render Factors Badges
+            const badgeBox = document.getElementById('factors-badges-container');
+            badgeBox.innerHTML = '';
+            document.getElementById('factors-count-badge').innerText = `${factors.length} Factor${factors.length > 1 ? 's' : ''} Found`;
+
+            const colors = ['bg-rose-500', 'bg-amber-500', 'bg-emerald-500', 'bg-sky-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500'];
+
+            factors.forEach((f, idx) => {
+                const color = colors[idx % colors.length];
+                const badge = document.createElement('div');
+                badge.className = `${color} text-white font-fredoka text-base font-bold px-4 py-2 rounded-2xl shadow-sm flex items-center gap-1.5 transform hover:scale-110 transition-all cursor-default animate-star-pop`;
+                badge.innerHTML = `<i class="fa-solid fa-star text-xs opacity-75"></i> ${f}`;
+                badgeBox.appendChild(badge);
+            });
+
+            // Render Factor Pairs Tabs
+            const pairsTabs = document.getElementById('pair-selector-tabs');
+            pairsTabs.innerHTML = '';
+
+            pairs.forEach((pair, idx) => {
+                const isSelected = idx === state.factors.activePairIndex || (idx >= pairs.length && (state.factors.activePairIndex = 0));
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-2 rounded-2xl font-bold font-fredoka text-sm border transition-all ${
+                    isSelected ? 'bg-brand-purple text-white border-brand-purple shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`;
+                btn.innerText = `${pair[0]} × ${pair[1]} = ${num}`;
+                btn.onclick = () => {
+                    state.factors.activePairIndex = idx;
+                    updateFactorsView();
+                    playSound('pop');
+                };
+                pairsTabs.appendChild(btn);
+            });
+
+            // Render Active Grid
+            if (state.factors.activePairIndex >= pairs.length) state.factors.activePairIndex = 0;
+            const activePair = pairs[state.factors.activePairIndex];
+            renderGridArray(activePair[0], activePair[1]);
+        }
+
+        function renderGridArray(rows, cols) {
+            document.getElementById('grid-dimensions-text').innerText = `${rows} Row${rows > 1 ? 's' : ''} × ${cols} Column${cols > 1 ? 's' : ''} = ${rows * cols} Total Blocks`;
+            const container = document.getElementById('grid-blocks-render');
+            container.innerHTML = '';
+
+            for (let r = 0; r < rows; r++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'flex gap-1.5 justify-center';
+
+                for (let c = 0; c < cols; c++) {
+                    const block = document.createElement('div');
+                    block.className = 'grid-block w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-tr from-brand-purple to-brand-pink shadow-sm flex items-center justify-center text-white text-[10px] font-bold opacity-90 hover:opacity-100 cursor-pointer';
+                    block.innerText = (r * cols) + c + 1;
+                    rowDiv.appendChild(block);
+                }
+                container.appendChild(rowDiv);
+            }
+        }
+
+        function setHCFPreset(a, b) {
+            document.getElementById('hcf-input-a').value = a;
+            document.getElementById('hcf-input-b').value = b;
+            updateHCFView();
+            playSound('pop');
+        }
+
+        function updateHCFView() {
+            let numA = parseInt(document.getElementById('hcf-input-a').value) || 12;
+            let numB = parseInt(document.getElementById('hcf-input-b').value) || 18;
+            numA = Math.max(1, Math.min(100, numA));
+            numB = Math.max(1, Math.min(100, numB));
+
+            state.hcf.numA = numA;
+            state.hcf.numB = numB;
+
+            document.getElementById('hcf-label-a').innerText = numA;
+            document.getElementById('hcf-label-b').innerText = numB;
+            document.getElementById('venn-name-a').innerText = numA;
+            document.getElementById('venn-name-b').innerText = numB;
+
+            const factorsA = getFactors(numA);
+            const factorsB = getFactors(numB);
+            const hcfVal = getHCF(numA, numB);
+
+            const common = factorsA.filter(f => factorsB.includes(f));
+            const uniqueA = factorsA.filter(f => !common.includes(f));
+            const uniqueB = factorsB.filter(f => !common.includes(f));
+
+            document.getElementById('hcf-final-result').innerText = hcfVal;
+            document.getElementById('hcf-badge-text').innerText = hcfVal;
+
+            // Render Unique A
+            const containerA = document.getElementById('venn-a-unique');
+            containerA.innerHTML = '';
+            uniqueA.forEach(f => {
+                const badge = document.createElement('span');
+                badge.className = 'w-9 h-9 rounded-xl bg-blue-500 text-white font-fredoka font-bold text-sm flex items-center justify-center shadow-sm animate-star-pop';
+                badge.innerText = f;
+                containerA.appendChild(badge);
+            });
+            if (uniqueA.length === 0) containerA.innerHTML = '<span class="text-xs text-slate-400 italic">None</span>';
+
+            // Render Unique B
+            const containerB = document.getElementById('venn-b-unique');
+            containerB.innerHTML = '';
+            uniqueB.forEach(f => {
+                const badge = document.createElement('span');
+                badge.className = 'w-9 h-9 rounded-xl bg-pink-500 text-white font-fredoka font-bold text-sm flex items-center justify-center shadow-sm animate-star-pop';
+                badge.innerText = f;
+                containerB.appendChild(badge);
+            });
+            if (uniqueB.length === 0) containerB.innerHTML = '<span class="text-xs text-slate-400 italic">None</span>';
+
+            // Render Common
+            const containerCommon = document.getElementById('venn-common');
+            containerCommon.innerHTML = '';
+            common.forEach(f => {
+                const isHighest = f === hcfVal;
+                const badge = document.createElement('span');
+                badge.className = `rounded-xl font-fredoka font-bold text-sm flex items-center justify-center shadow-sm animate-star-pop transition-all ${
+                    isHighest ? 'w-11 h-11 bg-amber-500 text-white text-base ring-4 ring-amber-200 animate-bounce-short' : 'w-9 h-9 bg-amber-100 text-amber-900'
+                }`;
+                badge.innerHTML = isHighest ? `<i class="fa-solid fa-crown text-amber-200 text-xs mr-0.5"></i>${f}` : f;
+                containerCommon.appendChild(badge);
+            });
+
+            // Summary Text
+            document.getElementById('summary-a-num').innerText = numA;
+            document.getElementById('summary-b-num').innerText = numB;
+            document.getElementById('summary-a-list').innerText = factorsA.join(', ');
+            document.getElementById('summary-b-list').innerText = factorsB.join(', ');
+            document.getElementById('summary-common-list').innerText = common.join(', ');
+            document.getElementById('summary-hcf-val').innerText = hcfVal;
+        }
+
+        function updateLCMSpeed() {
+            state.lcm.speed = 1500 - parseInt(document.getElementById('lcm-speed-slider').value);
+            const xVal = ((1500 - state.lcm.speed) / 600).toFixed(1);
+            document.getElementById('speed-label').innerText = `${xVal}x Speed`;
+            if (state.lcm.isPlaying) {
+                clearInterval(state.lcm.intervalId);
+                state.lcm.intervalId = setInterval(stepLCMAnimation, state.lcm.speed);
+            }
+        }
+
+        function resetLCMAnimation() {
+            if (state.lcm.intervalId) clearInterval(state.lcm.intervalId);
+            state.lcm.isPlaying = false;
+            state.lcm.stepA = 0;
+            state.lcm.stepB = 0;
+
+            document.getElementById('lcm-play-icon').className = 'fa-solid fa-play';
+            document.getElementById('lcm-play-text').innerText = 'Start Jump';
+
+            let valA = parseInt(document.getElementById('lcm-input-a').value) || 4;
+            let valB = parseInt(document.getElementById('lcm-input-b').value) || 6;
+            valA = Math.max(1, Math.min(15, valA));
+            valB = Math.max(1, Math.min(15, valB));
+
+            state.lcm.numA = valA;
+            state.lcm.numB = valB;
+
+            document.getElementById('lcm-val-a-display').innerText = valA;
+            document.getElementById('lcm-val-b-display').innerText = valB;
+            document.getElementById('log-num-a').innerText = valA;
+            document.getElementById('log-num-b').innerText = valB;
+
+            const lcmVal = getLCM(valA, valB);
+            document.getElementById('lcm-result-val').innerText = lcmVal;
+
+            renderLCMNumberLine();
+            updateLCMMultiplesLog();
+        }
+
+        function toggleLCMPlay() {
+            if (state.lcm.isPlaying) {
+                clearInterval(state.lcm.intervalId);
+                state.lcm.isPlaying = false;
+                document.getElementById('lcm-play-icon').className = 'fa-solid fa-play';
+                document.getElementById('lcm-play-text').innerText = 'Resume Jump';
+            } else {
+                state.lcm.isPlaying = true;
+                document.getElementById('lcm-play-icon').className = 'fa-solid fa-pause';
+                document.getElementById('lcm-play-text').innerText = 'Pause Jump';
+
+                const targetLCM = getLCM(state.lcm.numA, state.lcm.numB);
+                if (state.lcm.stepA * state.lcm.numA >= targetLCM && state.lcm.stepB * state.lcm.numB >= targetLCM) {
+                    state.lcm.stepA = 0;
+                    state.lcm.stepB = 0;
+                }
+
+                state.lcm.intervalId = setInterval(stepLCMAnimation, state.lcm.speed);
+            }
+            playSound('pop');
+        }
+
+        function stepLCMAnimation() {
+            const posA = state.lcm.stepA * state.lcm.numA;
+            const posB = state.lcm.stepB * state.lcm.numB;
+            const targetLCM = getLCM(state.lcm.numA, state.lcm.numB);
+
+            if (posA <= posB && posA < targetLCM) {
+                state.lcm.stepA++;
+                playSound('jump');
+            } else if (posB < posA && posB < targetLCM) {
+                state.lcm.stepB++;
+                playSound('jump');
+            } else if (posA < targetLCM) {
+                state.lcm.stepA++;
+                playSound('jump');
+            } else if (posB < targetLCM) {
+                state.lcm.stepB++;
+                playSound('jump');
+            }
+
+            renderLCMNumberLine();
+            updateLCMMultiplesLog();
+
+            const curA = state.lcm.stepA * state.lcm.numA;
+            const curB = state.lcm.stepB * state.lcm.numB;
+
+            if (curA === targetLCM && curB === targetLCM) {
+                clearInterval(state.lcm.intervalId);
+                state.lcm.isPlaying = false;
+                document.getElementById('lcm-play-icon').className = 'fa-solid fa-play';
+                document.getElementById('lcm-play-text').innerText = 'Replay';
+                playSound('win');
+                triggerConfetti();
+            }
+        }
+
+        function renderLCMNumberLine() {
+            const valA = state.lcm.numA;
+            const valB = state.lcm.numB;
+            const lcmVal = getLCM(valA, valB);
+            const maxVal = Math.max(lcmVal * 1.4, 24);
+
+            const container = document.getElementById('lcm-svg-container');
+            const stepWidth = 40; // pixels per unit
+            const svgWidth = (maxVal + 2) * stepWidth;
+            const baseLineY = 130;
+
+            let svgHTML = `<svg width="${svgWidth}" height="180" viewBox="0 0 ${svgWidth} 180" class="overflow-visible">`;
+
+            // Axis Line
+            svgHTML += `<line x1="20" y1="${baseLineY}" x2="${svgWidth - 20}" y2="${baseLineY}" stroke="#475569" stroke-width="3" stroke-linecap="round"/>`;
+
+            // Ticks & Labels
+            for (let i = 0; i <= maxVal; i++) {
+                const x = 30 + i * stepWidth;
+                const isLCM = i === lcmVal;
+
+                // Tick
+                svgHTML += `<line x1="${x}" y1="${baseLineY - 6}" x2="${x}" y2="${baseLineY + 6}" stroke="${isLCM ? '#10B981' : '#64748B'}" stroke-width="${isLCM ? '4' : '2'}"/>`;
+
+                // Label
+                svgHTML += `<text x="${x}" y="${baseLineY + 25}" text-anchor="middle" fill="${isLCM ? '#10B981' : '#94A3B8'}" font-family="Fredoka" font-weight="${isLCM ? 'bold' : 'normal'}" font-size="${isLCM ? '14' : '11'}">${i}</text>`;
+
+                // Highlight LCM flag
+                if (isLCM) {
+                    svgHTML += `<g transform="translate(${x - 12}, ${baseLineY - 110})">
+                        <rect width="24" height="24" rx="6" fill="#10B981" />
+                        <text x="12" y="16" text-anchor="middle" fill="white" font-size="12" font-weight="bold">⭐</text>
+                    </g>`;
+                }
+            }
+
+            // Draw Jumps Frog A (Red)
+            for (let i = 1; i <= state.lcm.stepA; i++) {
+                const startX = 30 + (i - 1) * valA * stepWidth;
+                const endX = 30 + i * valA * stepWidth;
+                const controlY = baseLineY - Math.min(valA * 10, 60);
+
+                svgHTML += `<path d="M ${startX} ${baseLineY - 4} Q ${(startX + endX) / 2} ${controlY} ${endX} ${baseLineY - 4}" fill="none" stroke="#F43F5E" stroke-width="3" stroke-dasharray="4,2" />`;
+            }
+
+            // Draw Jumps Frog B (Blue)
+            for (let i = 1; i <= state.lcm.stepB; i++) {
+                const startX = 30 + (i - 1) * valB * stepWidth;
+                const endX = 30 + i * valB * stepWidth;
+                const controlY = baseLineY - Math.min(valB * 10, 60);
+
+                svgHTML += `<path d="M ${startX} ${baseLineY - 4} Q ${(startX + endX) / 2} ${controlY} ${endX} ${baseLineY - 4}" fill="none" stroke="#0EA5E9" stroke-width="3" />`;
+            }
+
+            // Frog A Sprite Position
+            const frogAX = 30 + state.lcm.stepA * valA * stepWidth;
+            svgHTML += `<g transform="translate(${frogAX - 16}, ${baseLineY - 32})" class="transition-all duration-300">
+                <circle cx="16" cy="16" r="14" fill="#F43F5E" />
+                <text x="16" y="21" text-anchor="middle" fill="white" font-size="12">🐸</text>
+            </g>`;
+
+            // Frog B Sprite Position
+            const frogBX = 30 + state.lcm.stepB * valB * stepWidth;
+            svgHTML += `<g transform="translate(${frogBX - 16}, ${baseLineY - 58})" class="transition-all duration-300">
+                <circle cx="16" cy="16" r="14" fill="#0EA5E9" />
+                <text x="16" y="21" text-anchor="middle" fill="white" font-size="12">🐸</text>
+            </g>`;
+
+            svgHTML += `</svg>`;
+            container.innerHTML = svgHTML;
+        }
+
+        function updateLCMMultiplesLog() {
+            const listA = document.getElementById('multiples-list-a');
+            const listB = document.getElementById('multiples-list-b');
+
+            listA.innerHTML = '';
+            listB.innerHTML = '';
+
+            for (let i = 1; i <= state.lcm.stepA; i++) {
+                const val = i * state.lcm.numA;
+                const span = document.createElement('span');
+                span.className = 'px-2 py-1 rounded-lg bg-rose-200 text-rose-900';
+                span.innerText = val;
+                listA.appendChild(span);
+            }
+
+            for (let i = 1; i <= state.lcm.stepB; i++) {
+                const val = i * state.lcm.numB;
+                const span = document.createElement('span');
+                span.className = 'px-2 py-1 rounded-lg bg-sky-200 text-sky-900';
+                span.innerText = val;
+                listB.appendChild(span);
+            }
+        }
+
+        const quizBank = [
+            {
+                type: 'Factors',
+                question: 'Which of the following numbers is a FACTOR of 24?',
+                options: ['5', '8', '9', '14'],
+                correct: 1,
+                hint: '24 ÷ 8 = 3 without any remainder!'
+            },
+            {
+                type: 'HCF',
+                question: 'What is the Highest Common Factor (HCF) of 12 and 18?',
+                options: ['3', '4', '6', '12'],
+                correct: 2,
+                hint: 'Factors of 12: 1, 2, 3, 4, 6, 12. Factors of 18: 1, 2, 3, 6, 9, 18. The highest shared number is 6.'
+            },
+            {
+                type: 'LCM',
+                question: 'What is the Lowest Common Multiple (LCM) of 4 and 6?',
+                options: ['12', '18', '24', '10'],
+                correct: 0,
+                hint: 'Multiples of 4: 4, 8, 12... Multiples of 6: 6, 12... First match is 12!'
+            },
+            {
+                type: 'Prime vs Composite',
+                question: 'Which of these numbers is a PRIME number?',
+                options: ['9', '15', '17', '21'],
+                correct: 2,
+                hint: '17 only has two factors: 1 and 17.'
+            },
+            {
+                type: 'HCF',
+                question: 'What is the HCF of two prime numbers (e.g., 5 and 7)?',
+                options: ['0', '1', '5', '35'],
+                correct: 1,
+                hint: 'Prime numbers share no factors other than 1!'
+            }
+        ];
+
+        function renderQuiz() {
+            const q = quizBank[state.quiz.currentIndex];
+            state.quiz.answered = false;
+
+            document.getElementById('quiz-tag').innerText = `Question ${state.quiz.currentIndex + 1} of ${quizBank.length} • ${q.type}`;
+            document.getElementById('quiz-question-text').innerText = q.question;
+            document.getElementById('quiz-progress-bar').style.width = `${((state.quiz.currentIndex + 1) / quizBank.length) * 100}%`;
+
+            const optionsGrid = document.getElementById('quiz-options-grid');
+            optionsGrid.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-opt-btn p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-brand-purple hover:bg-purple-50 font-fredoka font-bold text-slate-800 text-lg transition-all text-left flex items-center justify-between';
+                btn.innerHTML = `<span>${opt}</span> <i class="fa-regular fa-circle text-slate-300"></i>`;
+                btn.onclick = () => checkQuizAnswer(idx, btn);
+                optionsGrid.appendChild(btn);
+            });
+
+            document.getElementById('quiz-feedback-box').className = 'hidden p-4 rounded-2xl text-sm font-medium transition-all';
+            document.getElementById('quiz-next-btn').classList.add('hidden');
+            document.getElementById('quiz-hint-btn').classList.remove('hidden');
+        }
+
+        function checkQuizAnswer(selectedIdx, btnElement) {
+            if (state.quiz.answered) return;
+            state.quiz.answered = true;
+
+            const q = quizBank[state.quiz.currentIndex];
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+
+            if (selectedIdx === q.correct) {
+                btnElement.className = 'p-4 rounded-2xl bg-emerald-500 text-white font-fredoka font-bold text-lg transition-all text-left flex items-center justify-between shadow-md';
+                btnElement.innerHTML = `<span>${q.options[selectedIdx]}</span> <i class="fa-solid fa-circle-check text-white"></i>`;
+
+                state.quiz.score += 10 + state.quiz.streak * 2;
+                state.quiz.streak++;
+                playSound('win');
+                triggerConfetti();
+
+                feedbackBox.className = 'p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold block animate-star-pop';
+                feedbackBox.innerHTML = `🎉 Correct! Awesome job! (+${10 + (state.quiz.streak - 1) * 2} pts)`;
+            } else {
+                btnElement.className = 'p-4 rounded-2xl bg-rose-500 text-white font-fredoka font-bold text-lg transition-all text-left flex items-center justify-between shadow-md';
+                btnElement.innerHTML = `<span>${q.options[selectedIdx]}</span> <i class="fa-solid fa-circle-xmark text-white"></i>`;
+
+                state.quiz.streak = 0;
+                playSound('error');
+
+                feedbackBox.className = 'p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm font-semibold block';
+                feedbackBox.innerHTML = `❌ Not quite! The correct answer is <strong>${q.options[q.correct]}</strong>.`;
+            }
+
+            document.getElementById('quiz-score-val').innerText = `${state.quiz.score} Points`;
+            document.getElementById('quiz-streak-val').innerText = state.quiz.streak;
+            document.getElementById('quiz-next-btn').classList.remove('hidden');
+        }
+
+        function showQuizHint() {
+            const q = quizBank[state.quiz.currentIndex];
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            feedbackBox.className = 'p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-sm font-medium block';
+            feedbackBox.innerHTML = `💡 <strong>Hint:</strong> ${q.hint}`;
+            playSound('pop');
+        }
+
+        function nextQuestion() {
+            state.quiz.currentIndex = (state.quiz.currentIndex + 1) % quizBank.length;
+            renderQuiz();
+            playSound('pop');
+        }
+
+        function resetQuiz() {
+            state.quiz.currentIndex = 0;
+            state.quiz.score = 0;
+            state.quiz.streak = 0;
+            document.getElementById('quiz-score-val').innerText = '0 Points';
+            document.getElementById('quiz-streak-val').innerText = '0';
+            renderQuiz();
+            playSound('pop');
+        }
+
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#6C5CE7', '#FD79A8', '#FDCB6E', '#00B894', '#0984E3'];
+
+            for (let i = 0; i < 70; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 14,
+                    vy: (Math.random() - 0.5) * 14 - 3,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 1
+                });
+            }
+
+            function animateConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.2; // Gravity
+                    p.life -= 0.02;
+
+                    if (p.life > 0) {
+                        alive = true;
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = Math.max(0, p.life);
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                if (alive) {
+                    requestAnimationFrame(animateConfetti);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            animateConfetti();
+        }
+
+        window.onload = function() {
+            updateFactorsView();
+            updateHCFView();
+            resetLCMAnimation();
+            renderQuiz();
+        };
+    </script>
+</body>
+</html>
